@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///Users/june/Desktop/2/linux/project/fe/app/page.tsx"],"sourcesContent":["export default function Home() {\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-white font-sans\">\n      <header className=\"flex justify-between w-full\">\n        <div className=\"text-black\">logo</div>\n        <div className=\"w-full border\"></div>\n        <div className=\"text-black\">user</div>\n      </header>\n      <body>\n        test\n      </body>\n      <footer>\n\n      </footer>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;;0BACb,8OAAC;gBAAO,WAAU;;kCAChB,8OAAC;wBAAI,WAAU;kCAAa;;;;;;kCAC5B,8OAAC;wBAAI,WAAU;;;;;;kCACf,8OAAC;wBAAI,WAAU;kCAAa;;;;;;;;;;;;0BAE9B,8OAAC;0BAAK;;;;;;0BAGN,8OAAC;;;;;;;;;;;AAKP","debugId":null}}]
+}
