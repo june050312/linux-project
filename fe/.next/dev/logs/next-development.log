@@ -1,4 +1,7 @@
-[00:00:01.126] Server  LOG      ✓ Ready in 841ms
-[00:00:15.102] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:13:20.315] Server  LOG      ✓ Compiled in 53ms
-[00:13:39.948] Server  LOG      ✓ Compiled in 15ms
+[00:00:00.959] Server  LOG      ✓ Ready in 663ms
+[00:00:05.060] Server  LOG      ○ Compiling /register ...
+[00:00:07.365] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:19.253] Browser ERROR   unhandledRejection: AxiosError: Network Error
+[00:00:52.375] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:59.525] Browser ERROR   unhandledRejection: AxiosError: Network Error
+[00:01:42.999] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
