@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>상품 목록</title>
+  <style>
+    .card-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: 220px;
+      box-shadow: 2px 2px 8px #eee;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      background: #fff;
+    }
+    .card:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 2px 8px 16px #eaeaea;
+    }
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .card-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin: 12px 0 6px 0;
+    }
+    .card-price {
+      color: #2196f3;
+      font-weight: bold;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .detail-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 32px 24px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 94vw;
+      position: relative;
+      box-shadow: 0 6px 36px rgba(0,0,0,0.28);
+    }
+    .modal-content img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .close-btn {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      cursor: pointer;
+      font-size: 1.3em;
+      color: #888;
+      background: none;
+      border: none;
+    }
+    .modal-description {
+      font-size: 1em;
+      margin-top: 12px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>상품 목록</h2>
+  <div id="card-list" class="card-list">
+    <!-- 상품 카드들 생성 영역 -->
+  </div>
+
+  <!-- 상세 정보 모달 -->
+  <div id="detail-modal" class="detail-modal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+      <img id="modal-img" src="" alt="상품이미지">
+      <div class="card-title" id="modal-title"></div>
+      <span class="card-price" id="modal-price"></span>
+      <div class="modal-description" id="modal-description"></div>
+    </div>
+  </div>
+
+  <script>
+    // API 엔드포인트 지정
+    const listApiUrl = '/api/goods/all';
+    const detailApiUrl = id => `/api/goods/${id}`;
+
+    // DEMO: 임시 상품 데이터 (API 연동이 안되어 있을 경우 사용)
+    const dummyData = [
+      {
+        id: 1,
+        name: "마법사 노트북",
+        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80",
+        price: 1290000,
+        description: "최신 사양의 마법사 노트북입니다. 빠른 속도와 스타일리시한 디자인!"
+      },
+      {
+        id: 2,
+        name: "게이밍 마우스",
+        image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=400&q=80",
+        price: 59000,
+        description: "정밀한 트래킹, RGB 조명 탑재. 최고의 게임 경험!"
+      },
+      {
+        id: 3,
+        name: "무선 키보드",
+        image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80",
+        price: 41000,
+        description: "심플한 디자인과 편리한 무선 연결. 오랜 배터리 수명."
+      }
+    ];
+
+    // 카드 렌더링 (설명은 제외)
+    function renderCards(goods) {
+      const list = document.getElementById('card-list');
+      list.innerHTML = '';
+      goods.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => openDetail(item.id);
+
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div class="card-title">${item.name}</div>
+          <span class="card-price">${item.price.toLocaleString()}원</span>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // 상세 정보 모달 오픈(설명 포함)
+    async function openDetail(id) {
+      try {
+        const res = await fetch(detailApiUrl(id));
+        if (!res.ok) throw new Error();
+        const item = await res.json();
+        showModal(item);
+      } catch (err) {
+        // API 실패시 dummy 사용
+        const item = dummyData.find(d => d.id === id) || dummyData[0];
+        showModal(item);
+      }
+    }
+
+    function showModal(item) {
+      document.getElementById('modal-img').src = item.image;
+      document.getElementById('modal-title').innerText = item.name;
+      document.getElementById('modal-price').innerText = item.price.toLocaleString() + "원";
+      document.getElementById('modal-description').innerText = item.description || "";
+      document.getElementById('detail-modal').style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').style.display = "none";
+    }
+
+    // esc 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+    // 바깥쪽 클릭시 모달 닫기
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+      if(e.target === this) closeModal();
+    });
+
+    // 상품 리스트 불러오기
+    async function fetchGoods() {
+      try {
+        const res = await fetch(listApiUrl);
+        if (!res.ok) throw new Error();
+        const goods = await res.json();
+        renderCards(goods);
+      } catch (err) {
+        // API 실패시 임시 데이터 사용
+        renderCards(dummyData);
+      }
+    }
+    fetchGoods();
+  </script>
+</body>
+</html>
+
