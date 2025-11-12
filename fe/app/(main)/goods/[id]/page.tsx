@@ -12,8 +12,7 @@ export default function GoodsDetail() {
           <span className="text-gray-400">상품 이미지</span>
         </div>
         <div className="flex-1 flex flex-col">
-          <h2 className="text-2xl font-semibold mb-2">{id}</h2>
-          <p className="text-lg text-gray-700 mb-4">여기에 상품에 대한 간단한 설명이 들어갑니다.</p>
+          <h2 className="text-2xl font-semibold mb-4">{id}</h2>
           <div className="mb-4">
             <span className="font-semibold">가격: </span>
             <span className="text-xl text-blue-600 font-bold">0원</span>
