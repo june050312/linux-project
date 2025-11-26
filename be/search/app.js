@@ -2,34 +2,35 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
+// ==============================
+//   supabase
+// ==============================
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
+
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'OK' : 'MISSING');
+console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'OK' : 'MISSING');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 const port = process.env.PORT || 8080;
 
 // body 파서
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 정적 파일 (필요하면 public 폴더 사용)
+// 정적 파일
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// ==============================
-//   history 배열 (메모리 저장)
-// ==============================
-let history = [
-  {
-    id: 1,
-    keyword: 'apple',
-    created_at: new Date().toISOString()
-  }
-];
-
-let nextId = 2;
-
 // 메인 페이지
 app.get('/', (req, res) => {
-  res.render('index');  // 너가 준 index.ejs
+  res.render('index');  // index.ejs
 });
 
 // ==============================
@@ -37,51 +38,104 @@ app.get('/', (req, res) => {
 // ==============================
 
 // 검색 + 히스토리 조회
-app.post('/api/search', (req, res) => {
+app.post('/api/search', async (req, res) => {
   const { keyword } = req.body || {};
+  console.log('[/api/search:POST] body.keyword =', keyword);
 
-  // 1) keyword가 비어있으면: 히스토리만 보내기 (초기 로딩용)
+  // 1) keyword 비어있으면: 전체 히스토리만 반환
   if (!keyword || !keyword.trim()) {
-    return res.json({
-      history   // [{id, keyword, created_at}, ...]
-    });
+    console.log('[/api/search:POST] 히스토리 전체 조회 요청');
+
+    const { data, error } = await supabase
+      .from('search_history')
+      .select('*')
+      .order('id', { ascending: false });
+
+    if (error) {
+      console.error('[/api/search:POST] 히스토리 조회 에러:', error);
+      return res.status(500).json({ error: '히스토리 조회 실패' });
+    }
+
+    return res.json({ history: data });
   }
 
   // 2) 실제 검색어가 들어온 경우
   const trimmed = keyword.trim();
 
-  // 실제 검색 로직 대신 예시 텍스트
+  
   const resultText = `『${trimmed}』 에 대한 검색 결과 예시입니다.`;
+  console.log('[/api/search:POST] 검색어 insert 시도:', trimmed);
 
-  const newItem = {
-    id: nextId++,
-    keyword: trimmed,
-    created_at: new Date().toISOString()
-  };
+  // user_id는 bigint이므로 숫자로
+  const { error: insertError } = await supabase
+    .from('search_history')
+    .insert({
+      user_id: 1,        // 임시 고정 유저
+      keyword: trimmed
+    });
 
-  // 최근 검색이 위로 오게 하고 싶으면 unshift, 아니면 push
-  history.unshift(newItem);
+  if (insertError) {
+    console.error('[/api/search:POST] INSERT 에러:', insertError);
+    return res.status(500).json({ error: '기록 저장 실패' });
+  }
+
+  console.log('[/api/search:POST] INSERT 성공:', trimmed);
+
+  const { data: historyData, error: historyError } = await supabase
+    .from('search_history')
+    .select('*')
+    .order('id', { ascending: false });
+
+  if (historyError) {
+    console.error('[/api/search:POST] 히스토리 재조회 에러:', historyError);
+    return res.status(500).json({ error: '히스토리 조회 실패' });
+  }
 
   return res.json({
     result: resultText,
-    history
+    history: historyData
   });
 });
 
 // 검색 기록 삭제
-app.delete('/api/search', (req, res) => {
+app.delete('/api/search', async (req, res) => {
   const { id } = req.body || {};
+  console.log('[/api/search:DELETE] body.id =', id);
 
-  const numericId = Number(id);
+  // 프론트에서 넘어오는 id는 문자열이므로 숫자로 변환
+  const numericId = parseInt(id, 10);
+
+  
   if (!numericId) {
+    console.log('[/api/search:DELETE] 잘못된 id 값:', id);
     return res.status(400).json({ error: '유효한 id가 필요합니다.' });
   }
 
-  history = history.filter(item => item.id !== numericId);
+  // Supabase에서 삭제
+  const { error: deleteError } = await supabase
+    .from('search_history')
+    .delete()
+    .eq('id', numericId);
 
-  return res.json({
-    history
-  });
+  if (deleteError) {
+    console.error('[/api/search:DELETE] 삭제 에러:', deleteError);
+    return res.status(500).json({ error: '삭제 실패' });
+  }
+
+  console.log('[/api/search:DELETE] 삭제 성공, id =', numericId);
+
+  // 삭제 후 전체 히스토리 다시 조회
+  const { data: historyData, error: historyError } = await supabase
+    .from('search_history')
+    .select('*')
+    .order('id', { ascending: false });
+
+  if (historyError) {
+    console.error('[/api/search:DELETE] 히스토리 재조회 에러:', historyError);
+    return res.status(500).json({ error: '히스토리 조회 실패' });
+  }
+
+  return res.json({ history: historyData });
 });
 
 app.listen(port, () => {
