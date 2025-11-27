@@ -85,10 +85,8 @@
 <body>
   <h2>상품 목록</h2>
   <div id="card-list" class="card-list">
-    <!-- 상품 카드들 생성 영역 -->
-  </div>
+    </div>
 
-  <!-- 상세 정보 모달 -->
   <div id="detail-modal" class="detail-modal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeModal()">&times;</button>
@@ -104,32 +102,10 @@
     const listApiUrl = '/api/goods/all';
     const detailApiUrl = id => `/api/goods/${id}`;
 
-    // DEMO: 임시 상품 데이터 (API 연동이 안되어 있을 경우 사용)
-    const dummyData = [
-      {
-        id: 1,
-        name: "마법사 노트북",
-        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80",
-        price: 1290000,
-        description: "최신 사양의 마법사 노트북입니다. 빠른 속도와 스타일리시한 디자인!"
-      },
-      {
-        id: 2,
-        name: "게이밍 마우스",
-        image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=400&q=80",
-        price: 59000,
-        description: "정밀한 트래킹, RGB 조명 탑재. 최고의 게임 경험!"
-      },
-      {
-        id: 3,
-        name: "무선 키보드",
-        image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80",
-        price: 41000,
-        description: "심플한 디자인과 편리한 무선 연결. 오랜 배터리 수명."
-      }
-    ];
+    // 💡 이미지가 없을 때 보여줄 기본 이미지 (placeholder)
+    const defaultImage = "https://via.placeholder.com/220x160?text=No+Image";
 
-    // 카드 렌더링 (설명은 제외)
+    // 카드 렌더링
     function renderCards(goods) {
       const list = document.getElementById('card-list');
       list.innerHTML = '';
@@ -138,16 +114,21 @@
         card.className = 'card';
         card.onclick = () => openDetail(item.id);
 
+        // 💡 DB 데이터 안전 처리 (image가 null이면 기본 이미지, name 대신 title 사용)
+        const displayImage = item.image || defaultImage;
+        const displayTitle = item.title; // DB 컬럼명 title
+        const displayPrice = item.price ? item.price.toLocaleString() + "원" : "가격 미정";
+
         card.innerHTML = `
-          <img src="${item.image}" alt="${item.name}">
-          <div class="card-title">${item.name}</div>
-          <span class="card-price">${item.price.toLocaleString()}원</span>
+          <img src="${displayImage}" alt="${displayTitle}">
+          <div class="card-title">${displayTitle}</div>
+          <span class="card-price">${displayPrice}</span>
         `;
         list.appendChild(card);
       });
     }
 
-    // 상세 정보 모달 오픈(설명 포함)
+    // 상세 정보 모달 오픈
     async function openDetail(id) {
       try {
         const res = await fetch(detailApiUrl(id));
@@ -155,16 +136,19 @@
         const item = await res.json();
         showModal(item);
       } catch (err) {
-        // API 실패시 dummy 사용
-        const item = dummyData.find(d => d.id === id) || dummyData[0];
-        showModal(item);
+        console.error(err);
+        alert("상세 정보를 불러오지 못했습니다.");
       }
     }
 
     function showModal(item) {
-      document.getElementById('modal-img').src = item.image;
-      document.getElementById('modal-title').innerText = item.name;
-      document.getElementById('modal-price').innerText = item.price.toLocaleString() + "원";
+      // 💡 모달 데이터도 안전하게 처리
+      document.getElementById('modal-img').src = item.image || defaultImage;
+      document.getElementById('modal-title').innerText = item.title; // DB 컬럼명 title
+      
+      const displayPrice = item.price ? item.price.toLocaleString() + "원" : "가격 미정";
+      document.getElementById('modal-price').innerText = displayPrice;
+      
       document.getElementById('modal-description').innerText = item.description || "";
       document.getElementById('detail-modal').style.display = "flex";
     }
@@ -188,14 +172,20 @@
         const res = await fetch(listApiUrl);
         if (!res.ok) throw new Error();
         const goods = await res.json();
+        
+        if (goods.length === 0) {
+             document.getElementById('card-list').innerText = "등록된 상품이 없습니다.";
+             return;
+        }
+        
         renderCards(goods);
       } catch (err) {
-        // API 실패시 임시 데이터 사용
-        renderCards(dummyData);
+        console.error(err);
+        document.getElementById('card-list').innerText = "DB 연결 실패. 콘솔을 확인하세요.";
       }
     }
+    
     fetchGoods();
   </script>
 </body>
 </html>
-
