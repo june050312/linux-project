@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import axiosInstance from '@/axiosConfig';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,17 +27,16 @@ export default function RegisterPage() {
     }
 
     // TODO: 실제 회원가입 로직을 여기에 추가하세요.
-    setTimeout(() => {
-      if (email !== 'already@taken.com') {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push('/login');
-        }, 1500);
-      } else {
-        setError('이미 사용중인 이메일입니다.');
-      }
-      setIsSubmitting(false);
-    }, 1200);
+    const response = await axiosInstance.post('/api/user/register', { email, password });
+    if (response.status === 200) {
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+    } else {
+      setError(response.data.error);
+    }
+    setIsSubmitting(false);
   };
 
   return (
