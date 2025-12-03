@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///Users/june/Desktop/2/linux/project/fe/app/page.tsx"],"sourcesContent":["import Header from \"./components/header\";\nimport Main from \"./components/main\";\n\nexport default function Home() {\n  return (\n    <div className=\"flex flex-col min-h-screen items-center justify-center bg-white font-sans\">\n      <Header />\n      <Main />\n      <footer>\n\n      </footer>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;AAGe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;;0BACb,8OAAC;;;;;0BACD,8OAAC;;;;;0BACD,8OAAC;;;;;;;;;;;AAKP","debugId":null}}]
-}

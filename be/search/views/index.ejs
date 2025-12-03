@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>검색 기능 테스트 페이지</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f6f6f6;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+      max-width: 1200px;
+    }
+    .main {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .sidebar {
+      flex: 1;
+      min-width: 260px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 18px 16px 10px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      height: fit-content;
+    }
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      background: #f6f6f6;
+      padding-bottom: 20px;
+      z-index: 1;
+    }
+    .search-bar input[type="text"] {
+      width: 350px;
+      padding: 8px 14px;
+      font-size: 1rem;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+    }
+    .search-bar button {
+      padding: 8px 24px;
+      border: none;
+      background: #3576ef;
+      color: white;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .search-bar button:active {
+      background: #2859b8;
+    }
+    .history-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #234;
+      font-size: 1.1rem;
+    }
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.98rem;
+    }
+    .history-keyword {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+    .delete-btn {
+      color: #ca2323;
+      background: none;
+      border: none;
+      padding: 2px 5px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.98rem;
+      border-radius: 2px;
+      transition: background 0.13s;
+    }
+    .delete-btn:hover {
+      background: #ffe7e7;
+    }
+    .result {
+      background: #fff;
+      border-radius: 8px;
+      min-height: 130px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 20px 25px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main">
+      <!-- 검색창 -->
+      <form class="search-bar" id="searchForm">
+        <input type="text" id="searchInput" placeholder="검색어를 입력하세요..." autocomplete="off" required />
+        <button type="submit" id="searchBtn">검색하기</button>
+      </form>
+      <!-- 검색 결과 -->
+      <div class="result" id="searchResult">
+        검색 결과가 이곳에 표시됩니다.
+      </div>
+    </div>
+    <!-- 검색 기록 영역 -->
+    <aside class="sidebar">
+      <div class="history-title">검색 기록</div>
+      <ul class="history-list" id="historyList">
+        <!-- 검색 기록이 여기에 표시됩니다 -->
+      </ul>
+    </aside>
+  </div>
+  <script>
+  const searchForm = document.getElementById('searchForm');
+  const searchInput = document.getElementById('searchInput');
+  const searchResult = document.getElementById('searchResult');
+  const historyList = document.getElementById('historyList');
+
+  // history: [{id, keyword, created_at}, ...]
+  function updateHistory(records = []) {
+    historyList.innerHTML = '';
+    if (!records.length) {
+      historyList.innerHTML = `<li style="color: #888; padding: 7px 0;">검색 기록이 없습니다.</li>`;
+      return;
+    }
+
+    records.forEach(item => {
+      const li = document.createElement('li');
+      li.classList.add('history-item');
+
+      li.innerHTML = `
+        <span class="history-keyword" title="${item.keyword}">
+          ${item.keyword}
+        </span>
+        <button
+          class="delete-btn"
+          data-id="${item.id}"
+          title="삭제"
+        >
+          삭제
+        </button>
+      `;
+
+      historyList.appendChild(li);
+    });
+  }
+
+  // 검색 결과 영역 업데이트
+  function updateResult(result) {
+    if (!result) {
+      searchResult.innerHTML = '<span style="color: #888;">검색 결과가 없습니다.</span>';
+      return;
+    }
+    if (typeof result === 'string') {
+      searchResult.innerText = result;
+    } else {
+      searchResult.innerHTML = `<pre style="white-space: pre-wrap; font-size:1rem; margin: 0;">${JSON.stringify(result, null, 2)}</pre>`;
+    }
+  }
+
+  function handleApiResponse(resp) {
+    if (resp.result !== undefined) updateResult(resp.result);
+    if (resp.history !== undefined) updateHistory(resp.history);
+  }
+
+  // 검색
+  searchForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const keyword = searchInput.value.trim();
+    if (!keyword) return;
+
+    searchResult.innerHTML = "<span style='color: #345;'>검색중...</span>";
+    try {
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify({ keyword })
+      });
+      const data = await res.json();
+      handleApiResponse(data);
+    } catch (err) {
+      searchResult.innerHTML = '<span style="color: #b00;">오류가 발생했습니다.</span>';
+    }
+    searchInput.value = '';
+  });
+
+  // 검색 기록 삭제
+  historyList.addEventListener('click', async function(e) {
+    if (e.target.classList.contains('delete-btn')) {
+      const id = e.target.getAttribute('data-id');
+      if (!confirm(`이 검색 기록을 삭제하시겠습니까?`)) return;
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.history !== undefined) updateHistory(data.history);
+      } catch (err) {
+        alert('삭제 중 오류가 발생했습니다.');
+      }
+    }
+  });
+
+  // 페이지 첫 로딩 시: 검색어 없이 history만 요청
+  window.addEventListener('DOMContentLoaded', async function() {
+    try {
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ keyword: '' })   // 서버에서 "히스토리만 보내" 용으로 처리
+      });
+      const data = await res.json();
+      if (data.history !== undefined) updateHistory(data.history);
+      searchResult.innerHTML = '검색 결과가 이곳에 표시됩니다.';
+    } catch(e) {
+      updateHistory([]);
+    }
+  });
+</script>
+</body>
+</html>
