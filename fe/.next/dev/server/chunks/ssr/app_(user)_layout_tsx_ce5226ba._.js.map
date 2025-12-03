@@ -2,5 +2,5 @@
   "version": 3,
   "sources": [],
   "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/june/Desktop/2/linux/project/fe/app/%28user%29/layout.tsx"],"sourcesContent":["export default function UserLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <div className=\"mt-10\">\n      {children}\n    </div>\n  );\n}"],"names":[],"mappings":";;;;;;AAAe,SAAS,WAAW,EAAE,QAAQ,EAAiC;IAC5E,qBACE,8OAAC;QAAI,WAAU;kBACZ;;;;;;AAGP","debugId":null}}]
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/june/Desktop/2/linux/linux-project/fe/app/%28user%29/layout.tsx"],"sourcesContent":["export default function UserLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <div className=\"mt-10\">\n      {children}\n    </div>\n  );\n}"],"names":[],"mappings":";;;;;;AAAe,SAAS,WAAW,EAAE,QAAQ,EAAiC;IAC5E,qBACE,8OAAC;QAAI,WAAU;kBACZ;;;;;;AAGP","debugId":null}}]
 }

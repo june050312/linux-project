@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import axiosInstance from '@/axiosConfig';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,15 +16,15 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError(null);
 
-    // TODO: 실제 로그인 로직을 여기에 추가하세요.
-    setTimeout(() => {
-      if (email === 'test@example.com' && password === 'password123') {
-        alert('로그인 성공!');
+    setTimeout(async () => {
+      const response = await axiosInstance.post('/api/user/login', { email, password });
+      if (response.status === 200) {
+        router.push('/');
       } else {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+        setError(response.data.error);
       }
-      setIsSubmitting(false);
     }, 1000);
+    setIsSubmitting(false);
   };
 
   const router = useRouter();

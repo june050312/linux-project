@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goods-deployment
+  labels:
+    app: goods-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: goods-deployment
+  template:
+    metadata:
+      labels:
+        app: goods-deployment
+    spec:
+      containers:
+      - name: goods-deployment
+        image: june050312/goods:v1.0.5
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080

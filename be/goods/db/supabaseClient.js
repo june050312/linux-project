@@ -4,7 +4,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // .env에서 설정한 환경 변수를 가져옴
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseAnonKey = process.env.SUPABASE_KEY;
 
 // 두 변수 중 하나라도 없으면 에러를 발생시켜 연결 실패를 즉시 알리는 역할
 if (!supabaseUrl || !supabaseAnonKey) {

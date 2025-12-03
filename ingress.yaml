@@ -1,0 +1,49 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: linux-project-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          # FE
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fe-service
+                port:
+                  number: 80
+          # goods service
+          - path: /api/goods
+            pathType: Prefix
+            backend:
+              service:
+                name: goods-service
+                port:
+                  number: 8080
+          # purchase service
+          - path: /api/purchase
+            pathType: Prefix
+            backend:
+              service:
+                name: purchase-service
+                port:
+                  number: 8080
+          # search service
+          - path: /api/search
+            pathType: Prefix
+            backend:
+              service:
+                name: search-service
+                port:
+                  number: 8080
+          # user service
+          - path: /api/user
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8080
+          

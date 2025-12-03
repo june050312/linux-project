@@ -1,8 +1,25 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import axiosInstance from "@/axiosConfig";
 import Main from "../components/Main";
 
-export default function Home() {
+export default function MainPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useEffect(() => {
+    const loginVerify = async () => {
+      const response = await axiosInstance.get('/api/user');
+      if (response.status === 200) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+    loginVerify();
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-white font-sans">
+    <div>
       <Main />
     </div>
   );

@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: user-service-monitor
+  labels:
+     app: user-service
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  endpoints:
+  - port: "user-service"
+    path: /api/user/metrics

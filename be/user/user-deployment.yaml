@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deployment
+  labels:
+    app: user-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-deployment
+  template:
+    metadata:
+      labels:
+        app: user-deployment
+    spec:
+      containers:
+      - name: user-deployment
+        image: june050312/user:v1.0.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080

@@ -1,6 +1,12 @@
 const express = require('express'); 
 const app = express();
 const path = require('path');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const loginVerify = require('../middleware/loginVerify')
+const promClient = require('prom-client')
+
+promClient.collectDefaultMetrics()
 
 // ==============================
 //   supabase
@@ -9,17 +15,23 @@ require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'OK' : 'MISSING');
-console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'OK' : 'MISSING');
+console.log('SUPABASE_KEY:', process.env.SUPABASE_KEY ? 'OK' : 'MISSING');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_KEY
 );
 
 const port = process.env.PORT || 8080;
 
+app.use(cors({
+  origin: process.env.FE_URL,
+  credentials: true,
+}));
+
 // body 파서
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // 정적 파일
@@ -37,8 +49,17 @@ app.get('/', (req, res) => {
 //   /api/search  라우트들
 // ==============================
 
+app.get('/api/search', loginVerify, async (req, res) => {
+  const { data, error } = await supabase
+    .from('search_history')
+    .select('*')
+    .eq('user_id', req.user.id)
+    .order('id', { ascending: false });
+  return res.json({ history: data });
+});
+
 // 검색 + 히스토리 조회
-app.post('/api/search', async (req, res) => {
+app.post('/api/search', loginVerify, async (req, res) => {
   const { keyword } = req.body || {};
   console.log('[/api/search:POST] body.keyword =', keyword);
 
@@ -49,6 +70,7 @@ app.post('/api/search', async (req, res) => {
     const { data, error } = await supabase
       .from('search_history')
       .select('*')
+      .eq('user_id', req.user.id)
       .order('id', { ascending: false });
 
     if (error) {
@@ -70,7 +92,7 @@ app.post('/api/search', async (req, res) => {
   const { error: insertError } = await supabase
     .from('search_history')
     .insert({
-      user_id: 1,        // 임시 고정 유저
+      user_id: req.user.id,        // 임시 고정 유저
       keyword: trimmed
     });
 
@@ -84,6 +106,7 @@ app.post('/api/search', async (req, res) => {
   const { data: historyData, error: historyError } = await supabase
     .from('search_history')
     .select('*')
+    .eq('user_id', req.user.id)
     .order('id', { ascending: false });
 
   if (historyError) {
@@ -98,7 +121,7 @@ app.post('/api/search', async (req, res) => {
 });
 
 // 검색 기록 삭제
-app.delete('/api/search', async (req, res) => {
+app.delete('/api/search', loginVerify, async (req, res) => {
   const { id } = req.body || {};
   console.log('[/api/search:DELETE] body.id =', id);
 
@@ -128,6 +151,7 @@ app.delete('/api/search', async (req, res) => {
   const { data: historyData, error: historyError } = await supabase
     .from('search_history')
     .select('*')
+    .eq('user_id', req.user.id)
     .order('id', { ascending: false });
 
   if (historyError) {
@@ -138,8 +162,15 @@ app.delete('/api/search', async (req, res) => {
   return res.json({ history: historyData });
 });
 
+app.get('/api/search/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', promClient.register.contentType)
+    res.end(await promClient.register.metrics())
+  } catch (error) {
+    res.status(500).send('Error fetching metrics')
+  }
+})
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-// test 2

@@ -3,6 +3,18 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../db/supabaseClient'); // 1단계에서 만든 Supabase 클라이언트 불러오기
+const promClient = require('prom-client')
+
+promClient.collectDefaultMetrics()
+
+router.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', promClient.register.contentType)
+    res.end(await promClient.register.metrics())
+  } catch (error) {
+    res.status(500).send('Error fetching metrics')
+  }
+})
 
 // ----------------------------------------------------------------------
 // 전체 상품 리스트 API (노션 명세: /all)

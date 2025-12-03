@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: purchase-deployment
+  labels:
+    app: purchase-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: purchase-deployment
+  template:
+    metadata:
+      labels:
+        app: purchase-deployment
+    spec:
+      containers:
+      - name: purchase-deployment
+        image: june050312/purchase:v1.0.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
